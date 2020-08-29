@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "CommonJS" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */,
+        "strict": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "importsNotUsedAsValues": "preserve"
+    },
+    "include": ["./src/index.ts"]
+}
