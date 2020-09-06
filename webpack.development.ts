@@ -20,9 +20,6 @@ module.exports = (env: { mode: "development" | "production" }) => {
                     test: /\.(js|jsx|ts|tsx)$/,
                     exclude: /node_modules/,
                     loader: "eslint-loader",
-                    options: {
-                        fix: true,
-                    },
                 },
                 {
                     test: /\.tsx?$/,
