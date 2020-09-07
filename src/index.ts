@@ -8,7 +8,7 @@ import Image from "./machine/elements/Image";
 import ButtonContainer from "./machine/elements/ButtonContainer";
 import { filters } from "pixi.js";
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
     const app = new App();
     const viewApp = app.getView();
 
