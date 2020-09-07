@@ -1,86 +1,59 @@
-import * as PIXI from "pixi.js";
+import "./assets/styles/style.css";
+import App from "./machine/core/App";
+import CustomLoader from "./machine/core/CustomLoader";
+import MachineContainer from "./machine/elements/MachineContainer";
+import ColumnContainer from "./machine/elements/ColumnContainer";
+import Reel from "./machine/elements/Reel";
+import Image from "./machine/elements/Image";
+import ButtonContainer from "./machine/elements/ButtonContainer";
+import { filters } from "pixi.js";
 
-import "./style.css";
+document.addEventListener("DOMContentLoaded", async () => {
+    const app = new App();
+    const viewApp = app.getView();
 
-export class Main {
-    private static readonly GAME_WIDTH = 800;
-    private static readonly GAME_HEIGHT = 600;
+    addChildToBody(viewApp);
 
-    private app!: PIXI.Application;
+    const loader = new CustomLoader(app.getLoader());
+    const pathsImages = loader.loadStatic();
+    const textures = loader.createTextures(pathsImages);
 
-    constructor() {
-        window.onload = (): void => {
-            this.startLoadingAssets();
-        };
-    }
+    const machineContainer = new MachineContainer();
+    machineContainer.setMachineContainerX(0);
+    machineContainer.setMachineContainerY(0);
+    const reels: Reel[] = [];
+    textures.forEach((el, index) => {
+        const column = new ColumnContainer();
 
-    // add for the test example purpose
-    public helloWorld(): string {
-        return "hello world";
-    }
+        column.setColumnContainerX(Image.SIZE * index);
+        machineContainer.addChild(column);
 
-    private startLoadingAssets(): void {
-        const loader = PIXI.Loader.shared;
-        loader.add("rabbit", "./assets/simpleSpriteSheet.json");
+        const reel = new Reel(column, [], 0, 0, new filters.BlurFilter());
+        reel.setBlurX(0);
+        reel.setBlurY(0);
 
-        loader.onComplete.once(() => {
-            this.onAssetsLoaded();
-        });
+        column.setFilters([reel.getBlur()]);
+        reel.addRandomElementsToColumnContainer(textures, 3);
 
-        loader.load();
-    }
+        reels.push(reel);
+    });
 
-    private onAssetsLoaded(): void {
-        this.createRenderer();
+    app.setReels(reels);
 
-        const stage = this.app.stage;
+    const buttonContainer = new ButtonContainer(0, machineContainer.height, machineContainer.width + 49, 70);
+    buttonContainer.addButton("GO", (machineContainer.width - 10) / 2, machineContainer.height + 10);
+    machineContainer.addChild(buttonContainer);
 
-        const birdFromSprite = this.getBird();
-        birdFromSprite.anchor.set(0.5, 0.5);
-        birdFromSprite.position.set(Main.GAME_WIDTH / 2, Main.GAME_HEIGHT / 2);
+    app.createFPSIndicator(buttonContainer);
 
-        stage.addChild(birdFromSprite);
-    }
+    app.stage.addChild(machineContainer);
 
-    private createRenderer(): void {
-        this.app = new PIXI.Application({
-            backgroundColor: 0xd3d3d3,
-            width: Main.GAME_WIDTH,
-            height: Main.GAME_HEIGHT,
-        });
+    buttonContainer.onClick(() => {
+        app.startSpin(buttonContainer, reels);
+    });
+    app.setListenersReels(textures);
+});
 
-        document.body.appendChild(this.app.view);
-
-        this.app.renderer.resize(window.innerWidth, window.innerHeight);
-        this.app.stage.scale.x = window.innerWidth / Main.GAME_WIDTH;
-        this.app.stage.scale.y = window.innerHeight / Main.GAME_HEIGHT;
-
-        window.addEventListener("resize", this.onResize.bind(this));
-    }
-
-    private onResize(): void {
-        if (!this.app) {
-            return;
-        }
-
-        this.app.renderer.resize(window.innerWidth, window.innerHeight);
-        this.app.stage.scale.x = window.innerWidth / Main.GAME_WIDTH;
-        this.app.stage.scale.y = window.innerHeight / Main.GAME_HEIGHT;
-    }
-
-    private getBird(): PIXI.AnimatedSprite {
-        const bird = new PIXI.AnimatedSprite([
-            PIXI.Texture.from("birdUp.png"),
-            PIXI.Texture.from("birdMiddle.png"),
-            PIXI.Texture.from("birdDown.png"),
-        ]);
-        bird.loop = true;
-        bird.animationSpeed = 0.1;
-        bird.play();
-        bird.scale.set(3);
-
-        return bird;
-    }
+function addChildToBody(view: HTMLCanvasElement): void {
+    document.body.appendChild(view);
 }
-
-new Main();
